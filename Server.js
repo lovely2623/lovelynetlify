@@ -8,16 +8,26 @@ const app = express();
 app.use(cors());
 app.use(express.json()); // React se JSON data read karne ke liye
 
+const MONGO_URI = process.env.MONGO_URI;
+
+mongoose.connect(MONGO_URI)
+  .then(() => console.log("MongoDB connected"))
+  .catch(err => console.log("MongoDB connection error:", err));
+
+app.get("/api/hello", (req, res) => {
+  res.json({ message: "Hello from backend!" });
+});
 
 
 
-// 🔹 MongoDB connect
-mongoose.connect("mongodb://127.0.0.1:27017/contactDB", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log("MongoDB connected"))
-.catch(err => console.log(err));
+
+// // 🔹 MongoDB connect
+// mongoose.connect("mongodb://127.0.0.1:27017/contactDB", {
+//   useNewUrlParser: true,
+//   useUnifiedTopology: true,
+// })
+// .then(() => console.log("MongoDB connected"))
+// .catch(err => console.log(err));
 
 
 
@@ -101,7 +111,9 @@ app.post("/check-email", async (req, res) => {
 
 
 // 🔹 Server start
-const PORT = 5000;
+// const PORT = 5000;
+
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
 
 
