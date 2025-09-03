@@ -8,7 +8,7 @@ const app = express();
 app.use(cors());
 app.use(express.json()); // React se JSON data read karne ke liye
 
-const MONGO_URI = "mongodb+srv://mtthakur786mt:Mohit12345@@cluster0.7bejf5h.mongodb.net/contactDB?retryWrites=true&w=majority";
+const MONGO_URI = "mongodb+srv://mtthakur786mt:Mohit12345@cluster0.7bejf5h.mongodb.net/contactDB?retryWrites=true&w=majority";
 
 mongoose.connect(MONGO_URI)
   .then(() => console.log("MongoDB connected"))
