@@ -1,0 +1,50 @@
+.page {
+  /* min-height: 100vh;
+  background-color: #f9f9f9;
+  margin: 0;
+  font-family: Arial, sans-serif; */
+    position: sticky;
+      z-index: 1000;
+         top: 0;
+
+
+}
+
+/* Navbar styling */
+.navbar {
+
+   top: 0;
+   z-index: 1000; 
+  background-color: white;
+  padding: 15px 40px; /* space from left and right */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Logo text */
+.logo {
+  font-size: 20px;
+  font-weight: bold;
+  color: black;
+}
+
+/* Navigation links */
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 25px;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: black;
+  font-weight: 500;
+}
+
+.nav-links a:hover {
+  color: gray;
+}
