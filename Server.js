@@ -53,15 +53,41 @@ app.post("/contact", async (req, res) => {
   }
 });
 
-// Update route
-app.put("/update/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const updatedData = req.body; // frontend se updated values aayengi
+// // Update route
+// app.put("/update/:id", async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const updatedData = req.body; // frontend se updated values aayengi
 
-    const updatedUser = await Contact.findByIdAndUpdate(id, updatedData, {
-      new: true, // updated document return karega
-    });
+//     const updatedUser = await Contact.findByIdAndUpdate(id, updatedData, {
+//       new: true, // updated document return karega
+//     });
+
+//     if (!updatedUser) {
+//       return res.status(404).json({ success: false, message: "User not found" });
+//     }
+
+//     res.json({ success: true, message: "User updated successfully", user: updatedUser });
+//   } catch (error) {
+//     console.error("Error updating user:", error);
+//     res.status(500).json({ success: false, message: "Server error, try again" });
+//   }
+// });
+
+
+// PUT /update-email
+app.put("/update-email", async (req, res) => {
+  try {
+    const { email, name, message } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
+
+    const updatedUser = await Contact.findOneAndUpdate(
+      { email: email.trim().toLowerCase() }, // filter by email
+      { name, message },                     // new data
+      { new: true }
+    );
 
     if (!updatedUser) {
       return res.status(404).json({ success: false, message: "User not found" });
@@ -70,11 +96,9 @@ app.put("/update/:id", async (req, res) => {
     res.json({ success: true, message: "User updated successfully", user: updatedUser });
   } catch (error) {
     console.error("Error updating user:", error);
-    res.status(500).json({ success: false, message: "Server error, try again" });
+    res.status(500).json({ success: false, message: "Server error" });
   }
 });
-
-
 
 
 
