@@ -54,7 +54,7 @@ app.post("/contact", async (req, res) => {
 });
 
 
-app.delete("/delete-email", async (req, res) => {
+app.post("/delete-email", async (req, res) => {
   try {
     const { email } = req.body;
 
