@@ -1,239 +1,125 @@
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
 
-import p from "../assets/p.jpg";
-import { useState , useEffect } from "react";
+const app = express();
 
+// Middleware
+app.use(cors());
+app.use(express.json()); // React se JSON data read karne ke liye
 
- 
-export const About =()=>{
+// MongoDB URI from environment variable
+const MONGO_URI = process.env.MONGO_URI;
 
+mongoose.connect(MONGO_URI) // warnings hata diye
+  .then(() => console.log("MongoDB connected"))
+  .catch(err => console.log("MongoDB connection error:", err));
 
-  const [email, setEmail] = useState("");
-   const [userName, setUserName] = useState(""); // new state for name
-   const [userMessage, setUserMessage] = useState(""); // new state for name
-
-
-
-  useEffect(() => {
-    fetch("https://lovelynetlify-9.onrender.com/api/hello") // backend URL
-      .then(res => res.json())
-      .then(data => console.log(data))
-      .catch(err => console.log("Error:", err));
-  }, []);
-
-
-
-
-const handleUpdate = async (id, updatedData) => {
-  try {
-    const response = await fetch(`https://lovelynetlify-9.onrender.com/update/${id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(updatedData),
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      alert("User updated successfully");
-      // state me bhi update karo
-      setUsers(users.map((user) => (user._id === id ? data.user : user)));
-    } else {
-      alert("Failed to update: " + data.message);
-    }
-  } catch (error) {
-    console.error("Error:", error);
-    alert("Server error, try again");
-  }
-};
-
-
-const handleDelete = async () => {
-  if (!email) {
-    alert("Please enter your email to delete");
-    return;
-  }
-
-  try {
-    const response = await fetch("https://lovelynetlify-9.onrender.com/delete-email", {
-      method: "POST",
-      // method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email: email.trim().toLowerCase() }),
-    });
-
-    const data = await response.json();
-    console.log("Delete response:", data);
-
-    if (data.success) {
-      alert("✅ Data deleted successfully");
-      setUserName("");
-      setUserMessage("");
-      setEmail("");
-    } else {
-      alert("❌ Could not delete. " + (data.message || ""));
-    }
-  } catch (error) {
-    console.error("Error:", error);
-    alert("Server error, please try again later");
-  }
-};
-
-
-
-const handleCheck = async () => {
-
-
- if (!email) {
-      alert("Please enter your email");
-      return;
-    }
-
- try {
-
-const response = await fetch("https://lovelynetlify-9.onrender.com/check-email", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({ email: email.trim().toLowerCase() }),
+app.get("/api/hello", (req, res) => {
+  res.json({ message: "Hello from backend!" });
 });
 
-const data = await response.json();
-console.log("Data from server:", data); // check karo yaha kya aa raha
+// 🔹 MongoDB Schema & Model
+const contactSchema = new mongoose.Schema({
+  name: String,
+  email: String,
+  message: String,
+});
 
- if (data.registered) {
-        alert("✅ Yes, you are registered");
-           setUserName(data.name);
-           setUserMessage(data.message || "No message found");
-      } 
-      else {
-        alert("❌ Sorry, you are not registered");
-           setUserName("");
-            setUserMessage("");
-      }
+const Contact = mongoose.model("Contact", contactSchema);
 
+// 🔹 POST API to save contact form
+app.post("/contact", async (req, res) => {
+  try {
+    const { name, email, message } = req.body;
+    console.log("Received message:", req.body);
 
-
-        } catch (error) {
-      console.error("Error:", error);
-      alert("Server error, please try again later");
+    const existing = await Contact.findOne({ name, email, message });
+    if (existing) {
+      return res.status(400).json({ message: "This message already exists!" });
     }
-  };
+
+    const newContact = new Contact({
+      name,
+      email: email.trim().toLowerCase(),
+      message,
+    });
+
+    await newContact.save();
+    res.json({ message: "Message saved successfully!" });
+  } catch (err) {
+    console.error("Error saving message:", err);
+    res.status(500).json({ message: "Error saving message" });
+  }
+});
+
+// Update route
+app.put("/update/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedData = req.body; // frontend se updated values aayengi
+
+    const updatedUser = await User.findByIdAndUpdate(id, updatedData, {
+      new: true, // updated document return karega
+    });
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.json({ success: true, message: "User updated successfully", user: updatedUser });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).json({ success: false, message: "Server error, try again" });
+  }
+});
 
 
 
 
 
-  const sectionStyle = {
-    position: "relative",
-    width: "100%",
-    minHeight: "80vh",
-    backgroundImage: `url(${p})`,
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    color: "white",
-    padding: "50px",
-    textAlign: "left",
-  };
 
-  const overlayStyle = {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    backgroundColor: "rgba(0,0,0,0.6)", // dark overlay for readability
-    zIndex: 1,
-  };
+app.post("/delete-email", async (req, res) => {
+  try {
+    const { email } = req.body;
 
-  const contentStyle = {
-    position: "relative",
-    zIndex: 2,
-    maxWidth: "700px",
-  };
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
 
-  const h1Style = {
-    fontSize: "48px",
-    marginBottom: "20px",
-  };
+    const deletedUser = await Contact.findOneAndDelete({ email });
 
-  const pStyle = {
-    fontSize: "18px",
-    lineHeight: "1.8",
-    marginBottom: "20px",
-  };
-const inputStyle = {
-    width: "100%",
-    padding: "12px",
-    borderRadius: "6px",
-    border: "none",
-    marginBottom: "15px",
-    fontSize: "16px",
-  };
-
-  const buttonStyle = {
-    padding: "12px 20px",
-    backgroundColor: "#4CAF50",
-    color: "white",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontSize: "16px",
-  };
-  return (
-    <section style={sectionStyle}>
-      <div style={overlayStyle}></div>
-      <div style={contentStyle}>
-        <h1 style={h1Style}>About Me</h1>
-        <p style={pStyle}>
-          Hello! I am Mohit Thakur, a passionate web developer and tech enthusiast. I love exploring the latest trends in web technologies and building interactive, user-friendly applications.
-        </p>
-        <p style={pStyle}>
-          With a background in React, Node.js, and modern web development, I aim to create projects that not only look great but also provide real value to users. My focus is on clean code, responsive design, and seamless user experience.
-        </p>
-        <p style={pStyle}>
-          Outside of coding, I enjoy learning new skills, experimenting with creative projects, and keeping up-to-date with the latest in the tech world.
-        </p>
+    if (deletedUser) {
+      res.json({ success: true, message: "User deleted successfully" });
+    } else {
+      res.json({ success: false, message: "User not found" });
+    }
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
 
 
 
+// 🔹 Check email API
+app.post("/check-email", async (req, res) => {
+  try {
+    const email = req.body.email.trim().toLowerCase();
+    console.log("Checking email:", email);
 
-        {/* New input and button */}
-        <input
-          type="email"
-          placeholder="Enter your email id"
-          style={inputStyle}
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <h1> Welcome : {userName ? userName : "Guest"}</h1>
-        <h2> You said to me  : {userMessage ? userMessage : "Guest"}</h2>
+    const contact = await Contact.findOne({ email });
+    if (contact) {
+      res.json({ registered: true, name: contact.name, message: contact.message });
+    } else {
+      res.json({ registered: false });
+    }
+  } catch (err) {
+    console.error("Error checking email:", err);
+    res.status(500).json({ registered: false });
+  }
+});
 
-
-        <button style={buttonStyle}  onClick={handleCheck}>
-          Check if you are registered in our database
-        </button>
-        <br/>
-        <br/>
-        <button style={buttonStyle} onClick={handleDelete}>
-          Delete
-        </button>
-         <br/>
-        <br/>
-         <button style={buttonStyle} onClick={handleUpdate}>
-          Delete
-        </button>
-      </div>
-    </section>
-  );
-}
-
-
-
+// 🔹 Start server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
