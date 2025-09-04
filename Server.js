@@ -53,6 +53,30 @@ app.post("/contact", async (req, res) => {
   }
 });
 
+
+app.delete("/delete-email", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ success: false, message: "Email is required" });
+    }
+
+    const deletedUser = await User.findOneAndDelete({ email });
+
+    if (deletedUser) {
+      res.json({ success: true, message: "User deleted successfully" });
+    } else {
+      res.json({ success: false, message: "User not found" });
+    }
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+
+
 // 🔹 Check email API
 app.post("/check-email", async (req, res) => {
   try {
