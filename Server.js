@@ -62,7 +62,7 @@ app.post("/delete-email", async (req, res) => {
       return res.status(400).json({ success: false, message: "Email is required" });
     }
 
-    const deletedUser = await User.findOneAndDelete({ email });
+    const deletedUser = await Contact.findOneAndDelete({ email });
 
     if (deletedUser) {
       res.json({ success: true, message: "User deleted successfully" });
