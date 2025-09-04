@@ -59,7 +59,7 @@ app.put("/update/:id", async (req, res) => {
     const { id } = req.params;
     const updatedData = req.body; // frontend se updated values aayengi
 
-    const updatedUser = await User.findByIdAndUpdate(id, updatedData, {
+    const updatedUser = await Contact.findByIdAndUpdate(id, updatedData, {
       new: true, // updated document return karega
     });
 
